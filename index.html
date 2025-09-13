@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSSC/2 Lives</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        body{font-family:'Inter',sans-serif;transition:background-image .5s}
+        .card-thumbnail{aspect-ratio:16/9;object-fit:cover}
+        .flatpickr-calendar{background-color:#fff;border-radius:1rem;box-shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -2px rgba(0,0,0,.1)}
+        .flatpickr-day.selected{background:#5b33ea;border-color:#337fea}
+        .search-box,#calendar-input{transition:all .3s}
+        .flatpickr-day.has-video{background:linear-gradient(135deg,#3d03fc,#b603fc);color:#fff!important;border:none;border-radius:9999px}
+        .flatpickr-day.has-video.selected{background:linear-gradient(135deg,#3d03fc,#b603fc);box-shadow:0 0 0 2px #fff,0 0 0 4px #b603fc}
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+
+<div id="password-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl text-center w-full max-w-sm">
+    <h2 class="text-2xl font-bold mb-4 text-gray-800">Enter Password</h2>
+    <input type="password" id="password-input" class="w-full px-4 py-2 border border-gray-300 rounded-full focus:ring-2 focus:ring-purple-500 focus:outline-none" placeholder="Password...">
+    <button id="password-submit" class="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-full hover:bg-purple-700 transition duration-300 mt-4">Unlock</button>
+    <p id="password-error" class="text-red-500 mt-4 text-sm h-4"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.isSecureContext === false) {
+    const passwordOverlay = document.getElementById('password-overlay');
+    passwordOverlay.innerHTML = `<div class="bg-white p-8 rounded-2xl shadow-2xl text-center w-full max-w-sm">
+        <h2 class="text-2xl font-bold mb-4 text-red-600">Security Error</h2>
+        <p class="text-gray-600">Run from a web server (HTTPS or localhost), not file://</p></div>`;
+    return;
+  }
+
+  // --- CONFIG ---
+  const API_KEY = "AIzaSyABuWUjziWFmIGZQXgQ8RK-X3uN7rlE1U8";
+  
+  const CORRECT_PASSWORD_HASH = "e024dc3bd8bfc857c338bfd9d12dad0d0be35039ba0200fc9d13a2fc6776bf89";
+
+  const passwordOverlay = document.getElementById('password-overlay');
+  const passwordInput = document.getElementById('password-input');
+  const passwordSubmit = document.getElementById('password-submit');
+  const passwordError = document.getElementById('password-error');
+
+  async function hashString(str){
+    const enc = new TextEncoder();
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function checkPassword(){
+    const entered = passwordInput.value;
+    const h = await hashString(entered);
+    if (h === CORRECT_PASSWORD_HASH){
+      passwordOverlay.style.display = 'none';
+      injectMainContentAndInitialize(entered);
+    } else {
+      passwordError.textContent = 'Incorrect password. Try again.';
+      passwordInput.value = '';
+    }
+  }
+
+  passwordSubmit.addEventListener('click', checkPassword);
+  passwordInput.addEventListener('keypress', (e)=>{ if (e.key==='Enter') checkPassword(); });
+
+  // --- MAIN ---
+  function injectMainContentAndInitialize(password){
+    const mainHTML = `
+      <div id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+          <h1 class="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">NSSC /2 LIVES ⁠♡</h1>
+          <p style="color: rgba(10, 10, 10, 0.4);">These will update once a day (If I don't forget :3)</p>
+          <div class="flex items-center gap-2">
+            <div class="relative">
+              <input type="text" id="search-box" placeholder="Search videos..." class="search-box w-48 sm:w-64 pl-10 pr-4 py-2 bg-white/60 backdrop-blur-sm rounded-full focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </div>
+            <input type="text" id="calendar-input" placeholder="Select date..." class="w-40 bg-white/60 backdrop-blur-sm rounded-full py-2 px-4 focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer">
+          </div>
+        </header>
+        <main id="video-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div id="loading-spinner" class="col-span-full h-40 flex items-center justify-center">
+            <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span class="text-lg">Loading Videos...</span>
+          </div>
+          <p id="no-results-message" class="hidden col-span-full text-center text-lg text-gray-500">No videos found matching your criteria.</p>
+        </main>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', mainHTML);
+    initializeApp(password);
+  }
+
+  async function initializeApp(password){
+    const videoGrid = document.getElementById('video-grid');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const noResultsMessage = document.getElementById('no-results-message');
+    const searchBox = document.getElementById('search-box');
+    const calendarInput = document.getElementById('calendar-input');
+
+    let allVideosData = [];
+    let datePicker = null;
+
+    // fetch link.json from same dir
+    let linkJson;
+    try {
+      const resp = await fetch('./link.json', {cache:'no-store'});
+      if (!resp.ok) throw new Error('link.json not found');
+      linkJson = await resp.json();
+    } catch (e) {
+      console.error('Failed to load link.json', e);
+      loadingSpinner.innerHTML = '<p class="text-red-500">Error loading link.json — make sure it exists and is accessible.</p>';
+      return;
+    }
+
+    const seed = linkJson.seed || '';
+    const encryptedVideoIds = Array.isArray(linkJson.encryptedVideoIds) ? linkJson.encryptedVideoIds : [];
+
+    // decrypt using passphrase = enteredPassword + '|' + seed
+    const decryptData = (ciphertext, password, seedVal) => {
+      try {
+        const passphrase = password + '|' + seedVal;
+        const bytes = CryptoJS.AES.decrypt(ciphertext, passphrase);
+        const txt = bytes.toString(CryptoJS.enc.Utf8);
+        if (!txt) {
+          console.warn('empty after decrypt, likely wrong key/seed', ciphertext);
+          return '';
+        }
+        return txt;
+      } catch (err) {
+        console.error('decrypt error', err);
+        return '';
+      }
+    };
+
+    const videoIds = encryptedVideoIds.map(c => decryptData(c, password, seed)).filter(Boolean);
+
+    const setRandomGradient = () => {
+      const r1 = Math.floor(Math.random()*360);
+      const r2 = (r1 + Math.floor(Math.random()*120)+120) % 360;
+      const g = `linear-gradient(135deg,hsl(${r1},80%,90%),hsl(${r2},80%,90%))`;
+      const styleSheet = document.createElement("style");
+      styleSheet.innerText = `body{background-image:${g}}`;
+      document.head.appendChild(styleSheet);
+    };
+
+const fetchAllVideoDetails = async () => {
+  if (!videoIds || videoIds.length === 0) {
+    loadingSpinner.innerHTML = '<p>Decryption failed or no video IDs provided.</p>';
+    return [];
+  }
+
+  let allResults = [];
+
+  // Split into chunks of 50 to satisfy YouTube API limits
+  for (let i = 0; i < videoIds.length; i += 50) {
+    const chunk = videoIds.slice(i, i + 50);
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${chunk.join(",")}&key=${API_KEY}`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.items) {
+        data.items.forEach(item => {
+          allResults.push({
+            id: item.id,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default.url,
+            publishedAt: item.snippet.publishedAt.split('T')[0]
+          });
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching video details:", err);
+      loadingSpinner.innerHTML = `<p class="text-red-500">Error fetching video data. Check console.</p>`;
+    }
+  }
+
+  return allResults;
+};
+
+    const renderVideos = (videos) => {
+      videoGrid.innerHTML = '';
+      noResultsMessage.classList.toggle('hidden', videos.length>0);
+      videos.forEach(video=>{
+        const card = document.createElement('a');
+        card.href = `https://www.youtube.com/watch?v=${video.id}`;
+        card.target = "_blank";
+        card.rel = "noopener noreferrer";
+        card.className = "group block bg-white/50 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden transform hover:-translate-y-2 transition-all duration-300";
+        card.innerHTML = `
+          <div class="relative">
+            <img src="${video.thumbnail}" alt="${video.title}" class="card-thumbnail w-full transition-transform duration-300 group-hover:scale-105" onerror="this.onerror=null;this.src='https://placehold.co/600x400/333/FFF?text=Image+Failed'">
+            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors duration-300 flex items-center justify-center">
+              <svg class="w-16 h-16 text-white/70 group-hover:text-white group-hover:scale-110 transition-all duration-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+            </div>
+          </div>
+          <div class="p-4">
+            <h3 class="font-bold text-lg truncate group-hover:text-purple-600 transition-colors duration-200" title="${video.title}">${video.title}</h3>
+            <p class="text-sm text-gray-500 mt-1">${video.publishedAt}</p>
+          </div>`;
+        videoGrid.appendChild(card);
+      });
+    };
+
+    const filterAndSearch = () => {
+      const term = (searchBox.value||'').toLowerCase();
+      const selectedDate = datePicker && datePicker.selectedDates[0] ? datePicker.formatDate(datePicker.selectedDates[0],"Y-m-d") : null;
+      const filtered = allVideosData.filter(v=> (!term||v.title.toLowerCase().includes(term)) && (!selectedDate||v.publishedAt===selectedDate));
+      renderVideos(filtered);
+    };
+
+    setRandomGradient();
+    const all = await fetchAllVideoDetails();
+    loadingSpinner.classList.add('hidden');
+    if (all.length>0){
+      allVideosData = all;
+      renderVideos(allVideosData);
+      const videoDates = allVideosData.map(v=>v.publishedAt);
+      datePicker = flatpickr("#calendar-input", {
+        dateFormat:"Y-m-d", altInput:true, altFormat:"M j, Y", enable: videoDates,
+        onChange: filterAndSearch,
+        onDayCreate: (dObj,dStr,fp,dayElem) => {
+          if (videoDates.includes(fp.formatDate(dayElem.dateObj,"Y-m-d"))) dayElem.classList.add("has-video");
+        },
+        onReady: (s,d,instance) => {
+          const clearButton = document.createElement('button');
+          clearButton.className = "flatpickr-button flatpickr-clear p-1 text-xs text-gray-500 hover:text-black";
+          clearButton.innerText = "Clear"; clearButton.type="button";
+          clearButton.addEventListener('click',(e)=>{ instance.clear(); e.stopPropagation(); });
+          instance.calendarContainer.appendChild(clearButton);
+        }
+      });
+      searchBox.addEventListener('input', filterAndSearch);
+    }
+  } // end initializeApp
+});
+</script>
+</body>
+</html>
