@@ -251,27 +251,42 @@ const fetchAllVideoDetails = async () => {
     };
 
     setRandomGradient();
-    const all = await fetchAllVideoDetails();
-    loadingSpinner.classList.add('hidden');
-    if (all.length>0){
-      allVideosData = all;
-      renderVideos(allVideosData);
-      const videoDates = allVideosData.map(v=>v.publishedAt);
-      datePicker = flatpickr("#calendar-input", {
-        dateFormat:"Y-m-d", altInput:true, altFormat:"M j, Y", enable: videoDates,
-        onChange: filterAndSearch,
-        onDayCreate: (dObj,dStr,fp,dayElem) => {
-          if (videoDates.includes(fp.formatDate(dayElem.dateObj,"Y-m-d"))) dayElem.classList.add("has-video");
-        },
-        onReady: (s,d,instance) => {
-          const clearButton = document.createElement('button');
-          clearButton.className = "flatpickr-button flatpickr-clear p-1 text-xs text-gray-500 hover:text-black";
-          clearButton.innerText = "Clear"; clearButton.type="button";
-          clearButton.addEventListener('click',(e)=>{ instance.clear(); e.stopPropagation(); });
-          instance.calendarContainer.appendChild(clearButton);
-        }
+const all = await fetchAllVideoDetails();
+loadingSpinner.classList.add('hidden');
+
+if (all.length > 0) {
+
+  // Sort newest uploads first
+  all.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+
+  allVideosData = all;
+  renderVideos(allVideosData);
+
+  const videoDates = allVideosData.map(v => v.publishedAt);
+  datePicker = flatpickr("#calendar-input", {
+    dateFormat:"Y-m-d",
+    altInput:true,
+    altFormat:"M j, Y",
+    enable: videoDates,
+    onChange: filterAndSearch,
+    onDayCreate:(dObj,dStr,fp,dayElem)=>{
+      if(videoDates.includes(fp.formatDate(dayElem.dateObj,"Y-m-d")))
+        dayElem.classList.add("has-video");
+    },
+    onReady:(s,d,instance)=>{
+      const clearButton=document.createElement('button');
+      clearButton.className="flatpickr-button flatpickr-clear p-1 text-xs text-gray-500 hover:text-black";
+      clearButton.innerText="Clear";
+      clearButton.type="button";
+      clearButton.addEventListener('click',(e)=>{
+        instance.clear();
+        e.stopPropagation();
       });
-      searchBox.addEventListener('input', filterAndSearch);
+      instance.calendarContainer.appendChild(clearButton);
+    }
+  });
+
+  searchBox.addEventListener('input', filterAndSearch);
 
       const vbtn=document.getElementById('videos-tab');
       const lbtn=document.getElementById('links-tab');
