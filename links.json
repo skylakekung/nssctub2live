@@ -23,6 +23,18 @@
     "icon": "🪧",
     "url": "https://docs.google.com/presentation/d/1dDztHZsBRVS1DgCCDPzGINhVtC2dEi6h/edit?usp=sharing&ouid=101467554866971120101&rtpof=true&sd=true"
   },
+      {
+    "title": "ทุกหน่วย สุขศึกษา",
+    "description": "Slideshow ของทุกหน่วย วิชาสุขศึกษา",
+    "icon": "🪧",
+    "url": "https://drive.google.com/drive/folders/1oJ2b3AUtzROpefm5z6QJ-LB1c6Wj3G1H?usp=drive_link"
+  },
+        {
+    "title": "Slide สัมนา พระพุทธ รวม",
+    "description": "67",
+    "icon": "🪧",
+    "url": "https://drive.google.com/file/d/1aO_KJ3ab_Hm6UoIXzLZgvm_BGrp_HnA7/view?usp=sharing"
+  },
     {
     "title": "Action 3 IWB",
     "description": "Slideshow ของ Action 3",
@@ -40,5 +52,12 @@
     "description": "สรุปพัฒนาการทางประวัติศาสตร์ไทยสมัยรัตนโกสิทร์ตอนต้น",
     "icon": "🪧",
     "url": "https://drive.google.com/file/d/11onl3DX45uoqNePe6vR0xQO7UBENFMhN/view?usp=sharing"
+  },
+          {
+    "title": "ภาพถ่ายวันกีฬาสี",
+    "description": "",
+    "icon": "📷",
+    "url": "https://drive.google.com/drive/folders/1eS73Cryp9fjesNvfVztRyzhwz7zupD8B?usp=sharing"
   }
+  
 ]
